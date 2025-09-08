@@ -1,103 +1,66 @@
 import Image from "next/image";
+import Link from "next/link";
 
-export default function Home() {
+function Card({ card, key }: { card: any; key: number }) {
+  const title = card.properties.Name.title[0]["plain_text"];
+  const tags = card.properties.Tag.multi_select.map((v: any) => v.name);
+  const dates = card.properties.Date.date;
+  const description = card.properties.Description["rich_text"][0]["plain_text"];
+  const thumbnail = card.properties.Thumbnail.files[0].file.url;
+  const id = card.id;
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <Link href={`/archive/${id}`}>
+      <article key={key}>
+        <h2>{title}</h2>
+        <Image src={thumbnail} alt="" width={480} height={480} />
+        <div>
+          tags:
+          {tags.map((v, ii) => (
+            <div key={ii}>{v}</div>
+          ))}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        <p>description: {description}</p>
+        <p>start: {dates.start}</p>
+        <p>end: {dates.end}</p>
+      </article>
+    </Link>
+  );
+}
+
+async function fetchCard() {
+  const url = process.env.DB_URL;
+  const dbKey = process.env.DB_KEY;
+  const options = {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${dbKey}`,
+      "Notion-Version": "2022-06-28",
+      "Content-Type": "application/json",
+    },
+  };
+
+  try {
+    const response = await fetch(url, options);
+    const data = await response.json();
+    const results = data.results;
+    console.log(results);
+    return results;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+export default async function Home() {
+  const cards = await fetchCard();
+
+  return (
+    <div>
+      <section>
+        {cards.map((card, i) => (
+          <Card card={card} key={i} />
+        ))}
+      </section>
     </div>
   );
 }
