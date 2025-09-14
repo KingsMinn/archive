@@ -55,12 +55,21 @@ export default async function Home() {
   const cards = await fetchCard();
 
   return (
-    <div>
+    <>
       <section>
+        <span>김승민 Kim Seungmin</span>
+        <h1>
+          경험을 설계하고, 인터랙션으로 생명력을 불어넣고, 코드로 구현합니다.
+        </h1>
+        <h2>Interactive Front-end Developer, Motion Graphic Designer</h2>
+        <span>smin2020@icloud.com</span>
+      </section>
+      <section>
+        <h2>Works</h2>
         {cards.map((card, i) => (
           <Card card={card} key={i} />
         ))}
       </section>
-    </div>
+    </>
   );
 }

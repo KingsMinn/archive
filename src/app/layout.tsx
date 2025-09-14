@@ -8,6 +8,7 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body>
+        <nav>min</nav>
         {children}
       </body>
     </html>
