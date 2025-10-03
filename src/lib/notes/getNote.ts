@@ -1,7 +1,7 @@
 "use server";
 import fs from "fs";
 import path from "path";
-import * as yaml from "js-yaml";
+import yaml from "js-yaml";
 
 const getNoteListAddress = () => path.join(process.cwd(), "public", "notes");
 
@@ -47,7 +47,7 @@ function extractYaml(content: string) {
       .replace(/\[\[(.*?)\]\]/g, "$1") // [[링크]] → 링크
       .trim();
 
-    return { ...yaml.load(yamlContent), preview: preview };
+    return { ...(yaml.load(yamlContent) || {}), preview: preview };
   } catch (err) {
     console.error("Error extractYaml", err);
     return {};

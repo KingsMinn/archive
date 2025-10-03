@@ -7,14 +7,17 @@ import {
 } from "@/lib/notes/getNote";
 import { NoteList } from "./NoteList";
 import { NoteContent } from "./NoteContent";
+import { NoteMetadata } from "@/types/note";
 
 export default function NoteLayout() {
   const [noteContent, setNoteContent] = useState("");
   const [isLoadingList, startLoadingList] = useTransition();
   const [isLoadingContent, startLoadingContent] = useTransition();
   const [selectedNote, setSelectedNote] = useState<string | null>(null);
-  const [entireNoteMetadata, setEntireNoteMetadata] = useState<any[]>([]);
-  const [noteMetadata, setNoteMetadata] = useState<any[]>([]);
+  const [entireNoteMetadata, setEntireNoteMetadata] = useState<NoteMetadata[]>(
+    []
+  );
+  const [noteMetadata, setNoteMetadata] = useState<NoteMetadata | null>(null);
 
   useEffect(() => {
     startLoadingList(async () => {

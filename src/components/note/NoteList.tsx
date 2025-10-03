@@ -1,28 +1,6 @@
+import { NoteCardProps, NoteListProps } from "@/types/note";
 import Loading from "../ui/Loading";
-
-interface NoteMetadata {
-  filename: string;
-  title: string;
-  date: string;
-  updated: string;
-  tags: string[];
-  published: boolean;
-  aliasis: string[];
-  preview?: string;
-}
-
-interface NoteListProps {
-  noteMetadata: NoteMetadata[];
-  handleClick: (filename: string) => void;
-  selectedNote: string | null;
-  isPending?: boolean;
-}
-
-interface NoteCardProps {
-  handleClick: (filename: string) => void;
-  selectedNote: string | null;
-  note: NoteMetadata;
-}
+import { relativeDate } from "@/lib/utils/relativeDate";
 
 function NoteCard({ note, handleClick, selectedNote }: NoteCardProps) {
   return (
@@ -34,7 +12,8 @@ function NoteCard({ note, handleClick, selectedNote }: NoteCardProps) {
       }`}
     >
       <h3>{note.title}</h3>
-      <p>{note.preview}</p>
+      <p>{note.preview}...</p>
+      <span>{relativeDate(note.date)}</span>
     </li>
   );
 }
@@ -47,7 +26,7 @@ export function NoteList({
 }: NoteListProps) {
   if (isPending) return <Loading />;
   return (
-    <ul className="min-w-[380px] max-w-[380px]">
+    <ul className="min-w-[380px] max-w-[380px] flex flex-col gap-[24px]">
       {noteMetadata.map((note) => (
         <NoteCard
           key={note.filename}
