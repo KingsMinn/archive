@@ -2,8 +2,8 @@
 import { useEffect, useState, useTransition } from "react";
 import {
   getNoteContents,
-  getEntireNoteMetadata,
   getNoteMetadata,
+  getNoteList,
 } from "@/lib/notes/getNote";
 import { NoteList } from "./NoteList";
 import { NoteContent } from "./NoteContent";
@@ -21,23 +21,24 @@ export default function NoteLayout() {
 
   useEffect(() => {
     startLoadingList(async () => {
-      const metadata = await getEntireNoteMetadata();
+      const metadata = await getNoteList();
       setEntireNoteMetadata(metadata);
+      console.log(metadata);
     });
   }, []);
 
-  function handleListClick(filename: string) {
+  function handleListClick(filename: string, subPath) {
     setSelectedNote(filename);
     startLoadingContent(async () => {
-      const content = await getNoteContents(filename, false);
-      const metadata = await getNoteMetadata(filename);
+      const content = await getNoteContents(filename, subPath, false);
+      const metadata = await getNoteMetadata(filename, subPath);
       setNoteContent(content);
       setNoteMetadata(metadata);
     });
   }
 
   return (
-    <div className="flex gap-[48px]">
+    <div className="flex gap-[48px] relative">
       <NoteList
         noteMetadata={entireNoteMetadata}
         handleClick={handleListClick}
