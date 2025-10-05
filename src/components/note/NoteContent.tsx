@@ -14,7 +14,7 @@ export function NoteContent({
 }) {
   if (isPending) return <Loading />;
   return (
-    <div className="flex grow justify-center">
+    <div className="flex grow h-[100vh] justify-center overflow-scroll">
       <article className="w-[540px] min-w-[540px]">
         {metadata ? (
           <>
