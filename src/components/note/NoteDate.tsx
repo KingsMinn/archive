@@ -3,7 +3,7 @@
 import { relativeDate, formatAbsoluteDate } from "@/lib/utils/relativeDate";
 import { useState } from "react";
 
-export default function NoteDate({ date }: { date: Date }) {
+export default function NoteDate({ date }: { date: Date | string }) {
   const [isHover, setIsHover] = useState(false);
   const handleMouseEnter = () => setIsHover(true);
   const handleMouseLeave = () => setIsHover(false);

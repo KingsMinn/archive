@@ -27,7 +27,7 @@ export function NoteList({
 }: NoteListProps) {
   if (isPending) return <Loading />;
   return (
-    <ul className="min-w-[380px] max-w-[380px] flex flex-col gap-[24px] sticky h-fit">
+    <ul className="min-w-[380px] max-w-[380px] h-[100vh] overflow-scroll flex flex-col gap-[24px]">
       {Object.keys(noteMetadata).map((note) => (
         <NoteCard
           key={note}

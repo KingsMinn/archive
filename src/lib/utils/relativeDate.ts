@@ -1,4 +1,4 @@
-export function relativeDate(date: Date) {
+export function relativeDate(date: Date | string) {
   const now = new Date();
   const targetDate = new Date(date);
   if (isNaN(targetDate.getTime())) return "날짜 없음";
@@ -20,9 +20,10 @@ export function relativeDate(date: Date) {
   return formatAbsoluteDate(targetDate);
 }
 
-export function formatAbsoluteDate(date: Date) {
-  const year = date.getFullYear();
-  const month = date.getMonth() + 1;
-  const day = date.getDay();
+export function formatAbsoluteDate(date: Date | string) {
+  const target = new Date(date);
+  const year = target.getFullYear();
+  const month = target.getMonth() + 1;
+  const day = target.getDay();
   return `${year}년 ${month}월 ${day}일`;
 }

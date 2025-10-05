@@ -7,15 +7,15 @@ import {
 } from "@/lib/notes/getNote";
 import { NoteList } from "./NoteList";
 import { NoteContent } from "./NoteContent";
-import { NoteMetadata } from "@/types/note";
+import { NoteListData, NoteMetadata } from "@/types/note";
 
 export default function NoteLayout() {
   const [noteContent, setNoteContent] = useState("");
   const [isLoadingList, startLoadingList] = useTransition();
   const [isLoadingContent, startLoadingContent] = useTransition();
   const [selectedNote, setSelectedNote] = useState<string | null>(null);
-  const [entireNoteMetadata, setEntireNoteMetadata] = useState<NoteMetadata[]>(
-    []
+  const [entireNoteMetadata, setEntireNoteMetadata] = useState<NoteListData>(
+    {}
   );
   const [noteMetadata, setNoteMetadata] = useState<NoteMetadata | null>(null);
 
@@ -23,11 +23,10 @@ export default function NoteLayout() {
     startLoadingList(async () => {
       const metadata = await getNoteList();
       setEntireNoteMetadata(metadata);
-      console.log(metadata);
     });
   }, []);
 
-  function handleListClick(filename: string, subPath) {
+  function handleListClick(filename: string, subPath: string) {
     setSelectedNote(filename);
     startLoadingContent(async () => {
       const content = await getNoteContents(filename, subPath, false);

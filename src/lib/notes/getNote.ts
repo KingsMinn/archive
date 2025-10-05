@@ -2,6 +2,7 @@
 import fs from "fs";
 import path from "path";
 import { load } from "js-yaml";
+import { NoteListData, NoteMetadata } from "@/types/note";
 
 const getNoteListAddress = (subPath?: string) =>
   subPath ? path.join(subPath) : path.join(process.cwd(), "public", "notes");
@@ -9,22 +10,19 @@ const getNoteListAddress = (subPath?: string) =>
 export async function getNoteList(subPath?: string) {
   try {
     const notesPath = getNoteListAddress(subPath);
-    const directories = [];
-    const result = {};
+    const result: NoteListData = {};
 
     async function searchDirectory(dir: string) {
       const files = await fs.promises.readdir(dir, { withFileTypes: true });
-      console.log("🚨🚨🚨🚨🚨🚨path 내 파일들", files);
 
       for (const file of files) {
         if (file.isDirectory()) {
-          const nextPath = file.parentPath + "/" + file.name;
-          directories.push(nextPath);
+          const nextPath = path.join(file.parentPath, file.name);
           await searchDirectory(nextPath);
         } else {
           const name = file.name.replace(".md", "");
           const metadata = await getNoteMetadata(file.name, file.parentPath);
-          console.log("🎉🎉🎉🎉🎉🎉🎉🎉받은 메타데이터:", metadata);
+          //✅ TODO: 현재 로직은 promise 스택에 쌓는 방식이 아니므로 속도가 느릴 수 있음. 추후 수정
 
           result[name] = {
             ...metadata,
@@ -34,11 +32,10 @@ export async function getNoteList(subPath?: string) {
       }
     }
     await searchDirectory(notesPath);
-    console.log("🥶🥶🥶🥶🥶🥶🥶🥶🥶🥶🥶파일 디렉토리", result);
     return result;
   } catch (error) {
     console.error("Error getNoteList:", error);
-    return [];
+    return {};
   }
 }
 
@@ -58,83 +55,83 @@ export async function getNoteContents(
   }
 }
 
-function extractYaml(content: string) {
-  try {
-    const frontmatterMatch = content.match(
-      /^---\n([\s\S]*?)\n---([\s\S]{0,100})/
-    );
-    if (!frontmatterMatch) return {};
-    const yamlContent = frontmatterMatch[1];
-    const preview = frontmatterMatch[2]
-      .replace(/#{1,6}\s/g, "") // # 헤딩 제거
-      .replace(/\*\*(.*?)\*\*/g, "$1") // **볼드** 제거
-      .replace(/\*(.*?)\*/g, "$1") // *이탤릭* 제거
-      .replace(/\[(.*?)\]\(.*?\)/g, "$1") // [링크](url) → 링크
-      .replace(/!\[\[(.*?)\]\]/g, "$1") // ![[이미지]] → 이미지
-      .replace(/\[\[(.*?)\]\]/g, "$1") // [[링크]] → 링크
-      .trim();
+const extractPreview = (content: string) =>
+  content
+    .replace(/#{1,6}\s/g, "") // # 헤딩 제거
+    .replace(/\*\*(.*?)\*\*/g, "$1") // **볼드** 제거
+    .replace(/\*(.*?)\*/g, "$1") // *이탤릭* 제거
+    .replace(/\[(.*?)\]\(.*?\)/g, "$1") // [링크](url) → 링크
+    .replace(/!\[\[(.*?)\]\]/g, "$1") // ![[이미지]] → 이미지
+    .replace(/\[\[(.*?)\]\]/g, "$1") // [[링크]] → 링크
+    .trim();
 
-    return { ...(load(yamlContent) || {}), preview: preview };
-  } catch (err) {
-    console.error("Error extractYaml", err);
-    return {};
+function extractYaml(content: string): Omit<NoteMetadata, "filename"> {
+  const frontmatterMatch = content.match(
+    /^---\n([\s\S]*?)\n---([\s\S]{0,100})/
+  );
+
+  if (frontmatterMatch) {
+    try {
+      const yamlContent = frontmatterMatch[1];
+      const preview = extractPreview(frontmatterMatch[2]);
+      const parsed: Record<string, unknown> = (load(yamlContent) ||
+        {}) as Record<string, unknown>;
+
+      return {
+        title:
+          typeof parsed.title === "string" ? parsed.title : "제목이 없어요",
+        date:
+          typeof parsed.date === "string" || parsed.date instanceof Date
+            ? parsed.date
+            : new Date().toISOString(),
+        updated:
+          typeof parsed.updated === "string" || parsed.updated instanceof Date
+            ? parsed.updated
+            : typeof parsed.date === "string" || parsed.date instanceof Date
+            ? parsed.date
+            : new Date().toISOString(),
+        tags: Array.isArray(parsed.tags) ? parsed.tags : [],
+        published:
+          typeof parsed.published === "boolean" ? parsed.published : false,
+        aliases: Array.isArray(parsed.aliases) ? parsed.aliases : [],
+        preview: preview || "내용이 없어요",
+      };
+    } catch (err) {
+      console.error("Error extractYaml", err);
+    }
   }
-}
-
-export async function getNoteMetadata(file: string, subPath?: string) {
-  const content = await getNoteContents(file, subPath);
-  const yamlData = extractYaml(content);
-  // console.log("✅✅✅✅✅✅✅ yaml", yamlData);
 
   return {
-    filename: file,
-    ...yamlData,
+    title: "제목이 없어요",
+    date: new Date().toISOString(),
+    updated: new Date().toISOString(),
+    tags: [],
+    published: false,
+    aliases: [],
+    preview: "내용이 없어요",
   };
 }
 
-// export async function getEntireNoteMetadata() {
-//   try {
-//     const noteList = await getNoteList();
-//     console.log("🤯🤯🤯🤯🤯🤯🤯🤯🤯🤯", noteList);
+export async function getNoteMetadata(file: string, subPath?: string) {
+  try {
+    const content = await getNoteContents(file, subPath);
+    const yamlData = extractYaml(content);
 
-//     const result = await Promise.all(
-//       noteList.map((note) => getNoteMetadata(note.name))
-//     );
-//     console.log("result: ", result);
-//     return result;
-//   } catch (err) {
-//     console.error("Error getNoteMetadata", err);
-//     return [];
-//   }
-// }
-
-// export async function getAllNotes() {
-//   let directories = [];
-//   let result = {};
-
-//   async function searchDirectory(directory: string) {
-//     try {
-//       const noteList = await getNoteList();
-//       console.log(noteList);
-
-//       noteList.forEach((note) => {
-//         if (note.isDirectory()) {
-//           directories.push(note);
-//           directories = directories.concat(searchDirectory(note));
-//         } else {
-//           const metadata = await getNoteMetadata(note);
-//           const id = await metadata.filename;
-//           result[id] = {
-//             ...metadata,
-//           };
-//         }
-//       });
-//     } catch (err) {
-//       console.error("Error getNoteProperties", err);
-//       return {};
-//     }
-//   }
-//   searchDirectory(getNoteListAddress());
-
-//   return result;
-// }
+    return {
+      filename: file,
+      ...yamlData,
+    };
+  } catch (err) {
+    console.error("Error getNoteMetadata", err);
+    return {
+      filename: file,
+      title: "제목이 없어요",
+      date: new Date().toISOString(),
+      updated: new Date().toISOString(),
+      tags: [],
+      published: false,
+      aliases: [],
+      preview: "내용이 없어요",
+    };
+  }
+}
