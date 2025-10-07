@@ -15,17 +15,12 @@ export interface NoteData extends NoteMetadata {
 
 export type NoteListData = Record<string, NoteData>;
 
-interface HandleListClick {
-  handleClick: (filename: string, subPath: string) => void;
-}
-
-export interface NoteListProps extends HandleListClick {
+export interface NoteListProps {
   noteMetadata: NoteListData;
-  selectedNote: string | null;
   isPending?: boolean;
 }
 
-export interface NoteCardProps extends HandleListClick {
-  selectedNote: string | null;
+export interface NoteCardProps {
   note: NoteData;
+  noteId: string;
 }
